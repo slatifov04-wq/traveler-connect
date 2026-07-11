@@ -1,31 +1,52 @@
 <!DOCTYPE html>
-<html>
+<html lang="az">
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Traveler Connect</title>
 
 <style>
+*{
+margin:0;
+padding:0;
+box-sizing:border-box;
+}
+
 body{
 font-family:Arial,sans-serif;
+background:#f4f6f9;
 padding:20px;
-background:#f5f5f5;
 }
 
 .container{
-max-width:500px;
+max-width:900px;
 margin:auto;
-background:white;
-padding:20px;
-border-radius:12px;
 }
 
-input,textarea{
+.header{
+background:#007bff;
+color:white;
+padding:20px;
+border-radius:15px;
+margin-bottom:20px;
+text-align:center;
+}
+
+.card{
+background:white;
+padding:15px;
+border-radius:15px;
+margin-bottom:15px;
+box-shadow:0 2px 10px rgba(0,0,0,.1);
+}
+
+input,textarea,select{
 width:100%;
 padding:12px;
-margin:8px 0;
+margin-top:8px;
+margin-bottom:8px;
 border:1px solid #ddd;
-border-radius:8px;
+border-radius:10px;
 }
 
 button{
@@ -34,12 +55,36 @@ padding:12px;
 background:#007bff;
 color:white;
 border:none;
-border-radius:8px;
+border-radius:10px;
 font-size:16px;
+cursor:pointer;
 }
 
-h1{
-text-align:center;
+button:hover{
+opacity:.9;
+}
+
+.user-card{
+background:#eef4ff;
+padding:12px;
+border-radius:12px;
+margin-top:10px;
+}
+
+.badge{
+display:inline-block;
+padding:5px 10px;
+background:#007bff;
+color:white;
+border-radius:20px;
+font-size:12px;
+margin-top:5px;
+}
+
+.match{
+color:green;
+font-weight:bold;
+margin-top:5px;
 }
 </style>
 </head>
@@ -47,58 +92,193 @@ text-align:center;
 <body>
 
 <div class="container">
-<h1>Traveler Connect ✈️</h1>
 
-<input id="name" placeholder="Adınız">
+<div class="header">
+<h1>🌍 Traveler Connect</h1>
+<p>Dost tap • Travel Buddy tap • Səyahət paylaş</p>
+</div>
 
-<input id="country" placeholder="Ölkə">
+<div class="card">
+
+<h2>Profil yarat</h2>
+
+<input id="name" placeholder="Ad">
+
+<input id="country" placeholder="Gedəcəyin ölkə">
 
 <input id="city" placeholder="Şəhər">
 
 <input id="budget" placeholder="Büdcə">
 
-<textarea id="interests" placeholder="Maraqlarınız"></textarea>
+<textarea id="interests" placeholder="Maraqlar (təbiət, əyləncə, istirahət və s.)"></textarea>
 
-<button onclick="saveTraveler()">Paylaş</button>
+<button onclick="saveTraveler()">
+Profili paylaş
+</button>
+
 </div>
 
-<script type="module">
+<div class="card">
 
-import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
-import { getFirestore, collection, addDoc } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
+<h2>Axtar</h2>
 
-const firebaseConfig = {
-apiKey: "AIzaSyA5ZXlknI-jq50zGyEsCv56xruEsirjanE",
-authDomain: "traveler-connect-616a1.firebaseapp.com",
-projectId: "traveler-connect-616a1",
-storageBucket: "traveler-connect-616a1.firebasestorage.app",
-messagingSenderId: "601977790428",
-appId: "1:601977790428:web:b69dab80eb7bceab233919",
-measurementId: "G-YNPPEPQQM0"
+<input
+id="search"
+placeholder="Ölkə və ya şəhər axtar..."
+onkeyup="filterTravelers()">
+
+</div>
+
+<div class="card">
+
+<h2>Səyahətçilər</h2>
+
+<div id="travelers"></div>
+
+</div>
+
+</div>
+
+<script>
+
+let travelers =
+JSON.parse(
+localStorage.getItem("travelers")
+) || [];
+
+function saveTraveler(){
+
+const traveler = {
+
+name:
+document.getElementById("name").value,
+
+country:
+document.getElementById("country").value,
+
+city:
+document.getElementById("city").value,
+
+budget:
+document.getElementById("budget").value,
+
+interests:
+document.getElementById("interests").value
+
 };
 
-const app = initializeApp(firebaseConfig);
-const db = getFirestore(app);
+travelers.push(traveler);
 
-window.saveTraveler = async function() {
+localStorage.setItem(
+"travelers",
+JSON.stringify(travelers)
+);
 
-const name = document.getElementById("name").value;
-const country = document.getElementById("country").value;
-const city = document.getElementById("city").value;
-const budget = document.getElementById("budget").value;
-const interests = document.getElementById("interests").value;
+alert("Profil əlavə edildi");
 
-await addDoc(collection(db,"travelers"),{
-name,
-country,
-city,
-budget,
-interests,
-createdAt:new Date()
+renderTravelers();
+
+}
+
+function calculateMatch(user){
+
+let score = 50;
+
+const myCountry =
+document.getElementById("country").value
+.toLowerCase();
+
+const myCity =
+document.getElementById("city").value
+.toLowerCase();
+
+if(
+user.country &&
+user.country.toLowerCase() === myCountry
+){
+score += 25;
+}
+
+if(
+user.city &&
+user.city.toLowerCase() === myCity
+){
+score += 25;
+}
+
+return Math.min(score,100);
+}
+function renderTravelers(list = travelers){
+
+let html = "";
+
+list.forEach((user,index)=>{
+
+html += `
+<div class="user-card">
+
+<h3>${user.name || "İstifadəçi"}</h3>
+
+<p>🌍 ${user.country || "-"}</p>
+
+<p>🏙 ${user.city || "-"}</p>
+
+<p>💰 ${user.budget || "-"}</p>
+
+<p>🎯 ${user.interests || "-"}</p>
+
+<div class="badge">
+Travel Buddy
+</div>
+
+<div class="match">
+Uyğunluq:
+${calculateMatch(user)}%
+</div>
+
+</div>
+`;
+
 });
 
-alert("Profil əlavə edildi!");
+document.getElementById("travelers").innerHTML =
+html;
+
 }
+
+function filterTravelers(){
+
+const search =
+document.getElementById("search")
+.value
+.toLowerCase();
+
+const filtered =
+travelers.filter(user =>
+
+(user.country || "")
+.toLowerCase()
+.includes(search)
+
+||
+
+(user.city || "")
+.toLowerCase()
+.includes(search)
+
+||
+
+(user.interests || "")
+.toLowerCase()
+.includes(search)
+
+);
+
+renderTravelers(filtered);
+
+}
+
+renderTravelers();
 
 </script>
 
