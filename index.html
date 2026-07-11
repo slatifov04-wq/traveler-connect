@@ -1,39 +1,41 @@
 <!DOCTYPE html>
-<html lang="az">
+<html>
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Traveler Connect</title>
 
 <style>
 body{
 font-family:Arial,sans-serif;
-background:#f5f5f5;
-margin:0;
 padding:20px;
+background:#f5f5f5;
 }
 
-.card{
+.container{
+max-width:500px;
+margin:auto;
 background:white;
-padding:15px;
+padding:20px;
 border-radius:12px;
-margin-bottom:15px;
-box-shadow:0 2px 8px rgba(0,0,0,.1);
 }
 
-input,select,button{
+input,textarea{
 width:100%;
 padding:12px;
-margin-top:8px;
-margin-bottom:8px;
-box-sizing:border-box;
+margin:8px 0;
+border:1px solid #ddd;
+border-radius:8px;
 }
 
 button{
-background:#0d6efd;
+width:100%;
+padding:12px;
+background:#007bff;
 color:white;
 border:none;
 border-radius:8px;
+font-size:16px;
 }
 
 h1{
@@ -44,75 +46,58 @@ text-align:center;
 
 <body>
 
-<h1>🌍 Traveler Connect</h1>
+<div class="container">
+<h1>Traveler Connect ✈️</h1>
 
-<div class="card">
-<h3>Səyahətini paylaş</h3>
+<input id="name" placeholder="Adınız">
 
-<input id="name" placeholder="Adın">
-
-<input id="country" placeholder="Gedəcəyin ölkə">
+<input id="country" placeholder="Ölkə">
 
 <input id="city" placeholder="Şəhər">
 
-<input id="date" type="date">
+<input id="budget" placeholder="Büdcə">
 
-<select id="budget">
-<option>0-50$</option>
-<option>50-100$</option>
-<option>100-200$</option>
-<option>200$+</option>
-</select>
+<textarea id="interests" placeholder="Maraqlarınız"></textarea>
 
-<input id="interest" placeholder="Maraqlar">
-
-<button onclick="addTraveler()">Paylaş</button>
+<button onclick="saveTraveler()">Paylaş</button>
 </div>
 
-<div class="card">
-<h3>Travelers</h3>
-<div id="list"></div>
-</div>
+<script type="module">
 
-<script>
+import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
+import { getFirestore, collection, addDoc } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
 
-let travelers=[];
-
-function addTraveler(){
-
-const user={
-name:name.value,
-country:country.value,
-city:city.value,
-date:date.value,
-budget:budget.value,
-interest:interest.value
+const firebaseConfig = {
+apiKey: "AIzaSyA5ZXlknI-jq50zGyEsCv56xruEsirjanE",
+authDomain: "traveler-connect-616a1.firebaseapp.com",
+projectId: "traveler-connect-616a1",
+storageBucket: "traveler-connect-616a1.firebasestorage.app",
+messagingSenderId: "601977790428",
+appId: "1:601977790428:web:b69dab80eb7bceab233919",
+measurementId: "G-YNPPEPQQM0"
 };
 
-travelers.push(user);
+const app = initializeApp(firebaseConfig);
+const db = getFirestore(app);
 
-render();
+window.saveTraveler = async function() {
 
-}
+const name = document.getElementById("name").value;
+const country = document.getElementById("country").value;
+const city = document.getElementById("city").value;
+const budget = document.getElementById("budget").value;
+const interests = document.getElementById("interests").value;
 
-function render(){
-
-list.innerHTML="";
-
-travelers.forEach(t=>{
-
-list.innerHTML+=`
-<div class="card">
-<b>${t.name}</b><br>
-📍 ${t.country} - ${t.city}<br>
-📅 ${t.date}<br>
-💰 ${t.budget}<br>
-🎯 ${t.interest}
-</div>
-`;
-
+await addDoc(collection(db,"travelers"),{
+name,
+country,
+city,
+budget,
+interests,
+createdAt:new Date()
 });
 
+alert("Profil əlavə edildi!");
 }
 
 </script>
