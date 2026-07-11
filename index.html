@@ -1,125 +1,176 @@
-<!DOCTYPE html>
-<html lang="az">
-<head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Traveler Connect</title>
+<!DOCTYPE html>  <html lang="az">  
+<head>  
+    <meta charset="UTF-8">  
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">  
+    <title>Traveler Connect</title>  
+    <style>  
+        body { font-family:Arial,sans-serif; background:#f5f5f5; padding:20px; margin:0; }  
+        .container { max-width:900px; margin:auto; }  
+        .card { background:white; padding:20px; border-radius:15px; margin-bottom:20px; box-shadow:0 2px 10px rgba(0,0,0,.1); }  
+        input,textarea,select { width:100%; padding:12px; margin:8px 0; border:1px solid #ddd; border-radius:8px; box-sizing:border-box; }  
+        button { width:100%; padding:12px; background:#007bff; color:white; border:none; border-radius:8px; font-size:16px; cursor:pointer; margin-top: 5px; }  
+        h1, h2 { text-align:center; }  
+    </style>  
+</head>  
+<body>  <div class="container">  
+    <div class="card">  
+        <h1>Traveler Connect ✈️</h1>  
+        <input id="name" placeholder="Adınız">  
+        <input id="age" type="number" placeholder="Yaş">  
+        <select id="gender">  
+            <option value="">Cinsiyyət seçin</option>  
+            <option>Kişi</option>  
+            <option>Qadın</option>  
+        </select>  
+        <input id="country" placeholder="Ölkə">  
+        <input id="city" placeholder="Şəhər">  
+        <input id="budget" placeholder="Büdcə">  
+        <input id="travelDate" type="date">  
+        <input id="whatsapp" placeholder="WhatsApp">  
+        <input id="telegram" placeholder="Telegram username">  
+        <input id="photo" placeholder="Profil şəkli linki">  
+        <textarea id="interests" placeholder="Maraqlar"></textarea>  
+        <button onclick="saveTraveler()">Paylaş</button>  
+    </div>  <div class="card">  
+    <h2>Səyahətçiləri Axtar</h2>  
+    <input id="search" placeholder="Ölkə və ya şəhər yazın" onkeyup="loadTravelers()">  
+    <select id="budgetFilter" onchange="loadTravelers()">  
+        <option value="">Bütün büdcələr</option>  
+        <option value="500">500+</option>  
+        <option value="1000">1000+</option>  
+        <option value="2000">2000+</option>  
+    </select>  
+    <select id="interestFilter" onchange="loadTravelers()">  
+        <option value="">Bütün maraqlar</option>  
+        <option value="Turizm">Turizm</option>  
+        <option value="Dağçılıq">Dağçılıq</option>  
+        <option value="Dəniz">Dəniz</option>  
+        <option value="Backpacking">Backpacking</option>  
+        <option value="Lüks">Lüks səyahət</option>  
+    </select>  
+</div>  
 
-<style>
-body{ font-family:Arial,sans-serif; background:#f5f5f5; padding:20px; margin:0; }
-.container{ max-width:900px; margin:auto; }
-.card{ background:white; padding:20px; border-radius:15px; margin-bottom:20px; box-shadow:0 2px 10px rgba(0,0,0,.1); }
-input,textarea,select{ width:100%; padding:12px; margin:8px 0; border:1px solid #ddd; border-radius:8px; box-sizing:border-box; }
-button{ width:100%; padding:12px; background:#007bff; color:white; border:none; border-radius:8px; font-size:16px; cursor:pointer; }
-h1,h2{ text-align:center; }
-</style>
-</head>
-
-<body>
-
-<div class="container">
-
-<div class="card">
-<h1>Traveler Connect ✈️</h1>
-<input id="name" placeholder="Adınız">
-<input id="country" placeholder="Ölkə">
-<input id="city" placeholder="Şəhər">
-<input id="budget" placeholder="Büdcə">
-<textarea id="interests" placeholder="Maraqlarınız"></textarea>
-<button onclick="saveTraveler()">Paylaş</button>
+<div class="card">  
+    <h2>❤️ Favorilərim</h2>  
+    <div id="favoritesList">Favori yoxdur</div>  
+    <hr>  
+    <h2>Bütün Səyahətçilər</h2>  
+    <div id="travelersList">Yüklənir...</div>  
 </div>
 
-<div class="card">
-<h2>Səyahətçiləri Axtar</h2>
-<input id="search" placeholder="Ölkə və ya şəhər yazın" onkeyup="loadTravelers()">
-<select id="budgetFilter" onchange="loadTravelers()">
-<option value="">Bütün büdcələr</option>
-<option value="500">500+</option>
-<option value="1000">1000+</option>
-<option value="2000">2000+</option>
-</select>
-</div>
-
-<div class="card">
-<h2>Bütün Səyahətçilər</h2>
-<div id="travelersList">Yüklənir...</div>
-</div>
-
-<script type="module">
-import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
-import { getFirestore, collection, addDoc, getDocs } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
-
-const firebaseConfig = {
-  apiKey: "AIzaSyA5ZXlknI-jq50zGyEsCv56xruEsirjanE",
-  authDomain: "traveler-connect-616a1.firebaseapp.com",
-  projectId: "traveler-connect-616a1",
-  storageBucket: "traveler-connect-616a1.firebasestorage.app",
-  messagingSenderId: "601977790428",
-  appId: "1:601977790428:web:b69dab80eb7bceab233919"
-};
-
-const app = initializeApp(firebaseConfig);
-const db = getFirestore(app);
-
-window.saveTraveler = async function(){
-    const name = document.getElementById("name").value.trim();
-    const country = document.getElementById("country").value.trim();
-    const city = document.getElementById("city").value.trim();
-    const budget = document.getElementById("budget").value.trim();
-    const interests = document.getElementById("interests").value.trim();
-
-    if(!name || !country || !city){
-        alert("Bütün xanaları doldurun");
-        return;
-    }
-
-    try {
-        await addDoc(collection(db,"travelers"),{
-            name, country, city, budget, interests, createdAt: new Date()
-        });
-        alert("Profil uğurla əlavə edildi!");
-        document.getElementById("name").value = "";
-        document.getElementById("country").value = "";
-        document.getElementById("city").value = "";
-        document.getElementById("budget").value = "";
-        document.getElementById("interests").value = "";
-        loadTravelers();
-    } catch(error) {
-        console.error(error);
-        alert("Xəta baş verdi");
-    }
-};
-
-window.loadTravelers = async function(){
-    const list = document.getElementById("travelersList");
-    const search = document.getElementById("search").value.toLowerCase();
-    const budgetFilter = document.getElementById("budgetFilter").value;
-    
-    list.innerHTML = "Yüklənir...";
-    const snapshot = await getDocs(collection(db,"travelers"));
-    let html = "";
-    
-    snapshot.forEach((doc)=>{
-        const d = doc.data();
-        const matchesSearch = d.country.toLowerCase().includes(search) || d.city.toLowerCase().includes(search);
-        const matchesBudget = budgetFilter === "" || parseInt(d.budget || 0) >= parseInt(budgetFilter);
-        
-        if(matchesSearch && matchesBudget){
-            html += `
-            <div style="background:white; padding:15px; margin:10px 0; border-radius:10px; border:1px solid #ddd;">
-                <h3>${d.name}</h3>
-                <p>🌍 ${d.country}</p>
-                <p>🏙️ ${d.city}</p>
-                <p>💰 Büdcə: ${d.budget}</p>
-                <p>🎯 ${d.interests}</p>
-            </div>`;
-        }
-    });
-    list.innerHTML = html || "Heç bir nəticə tapılmadı.";
-};
-
-loadTravelers();
-</script>
-
-</body>
-</html>
+</div>  <script type="module">  
+import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";  
+import { getFirestore, collection, addDoc, getDocs } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";  
+  
+const firebaseConfig = {  
+  apiKey: "AIzaSyA5ZXlknI-jq50zGyEsCv56xruEsirjanE",  
+  authDomain: "traveler-connect-616a1.firebaseapp.com",  
+  projectId: "traveler-connect-616a1",  
+  storageBucket: "traveler-connect-616a1.firebasestorage.app",  
+  messagingSenderId: "601977790428",  
+  appId: "1:601977790428:web:b69dab80eb7bceab233919"  
+};  
+  
+const app = initializeApp(firebaseConfig);  
+const db = getFirestore(app);  
+  
+// FAVORİLƏR SİSTEMİ  
+let favorites = JSON.parse(localStorage.getItem("favorites")) || [];  
+  
+window.addFavorite = function(name){  
+    if(!favorites.includes(name)){  
+        favorites.push(name);  
+        localStorage.setItem("favorites", JSON.stringify(favorites));  
+        alert("Favorilərə əlavə edildi");  
+        renderFavorites();  
+    }  
+}  
+  
+function renderFavorites(){  
+    const box = document.getElementById("favoritesList");  
+    if(!box) return;  
+    box.innerHTML = favorites.length === 0 ? "Favori yoxdur" : favorites.join(" ❤️ ");  
+}  
+  
+window.saveTraveler = async function(){  
+    const name = document.getElementById("name").value.trim();  
+    const age = document.getElementById("age").value.trim();  
+    const gender = document.getElementById("gender").value;  
+    const country = document.getElementById("country").value.trim();  
+    const city = document.getElementById("city").value.trim();  
+    const budget = document.getElementById("budget").value.trim();  
+    const travelDate = document.getElementById("travelDate").value;  
+    const whatsapp = document.getElementById("whatsapp").value.trim();  
+    const telegram = document.getElementById("telegram").value.trim();  
+    const photo = document.getElementById("photo").value.trim();  
+    const interests = document.getElementById("interests").value.trim();  
+  
+    if(!name || !country || !city){ alert("Məlumatları doldur"); return; }  
+  
+    await addDoc(collection(db,"travelers"),{ name, age, gender, country, city, budget, travelDate, whatsapp, telegram, photo, interests, createdAt: new Date() });  
+    alert("Profil əlavə edildi");  
+    loadTravelers();  
+};  
+  
+window.loadTravelers = async function(){  
+    const list = document.getElementById("travelersList");  
+    const search = document.getElementById("search").value.toLowerCase();  
+    const budgetFilter = document.getElementById("budgetFilter").value;  
+    const interestFilter = document.getElementById("interestFilter").value;  
+      
+    list.innerHTML = "Yüklənir...";  
+    const snapshot = await getDocs(collection(db,"travelers"));  
+      
+    const travelers = [];  
+    snapshot.forEach((doc)=>{ travelers.push(doc.data()); });  
+      
+    travelers.sort((a,b)=>{  
+        const dateA = a.createdAt?.seconds || 0;  
+        const dateB = b.createdAt?.seconds || 0;  
+        return dateB - dateA;  
+    });  
+  
+    let html = "";  
+    travelers.forEach((d)=>{  
+          
+        let matchScore = 50;  
+        const myCountry = document.getElementById("country").value.toLowerCase();  
+        const myCity = document.getElementById("city").value.toLowerCase();  
+        if(myCountry && (d.country || "").toLowerCase() === myCountry) matchScore += 25;  
+        if(myCity && (d.city || "").toLowerCase() === myCity) matchScore += 25;  
+        if(matchScore > 100) matchScore = 100;  
+  
+        const matchesSearch = d.country.toLowerCase().includes(search) || d.city.toLowerCase().includes(search);  
+        const matchesBudget = budgetFilter === "" || parseInt(d.budget || 0) >= parseInt(budgetFilter);  
+        const matchesInterest = interestFilter === "" || (d.interests || "").toLowerCase().includes(interestFilter.toLowerCase());  
+          
+        if(matchesSearch && matchesBudget && matchesInterest){  
+            html += `  
+            <div style="background:white; padding:15px; margin:10px 0; border-radius:10px; border:1px solid #ddd; text-align:center;">  
+                <img src="${d.photo || 'https://via.placeholder.com/120'}" style="width:120px; height:120px; border-radius:50%; object-fit:cover; display:block; margin:auto;">  
+                <h3>${d.name}</h3>  
+                <p>🎂 Yaş: ${d.age || '-'}</p>  
+                <p>👤 ${d.gender || '-'}</p>  
+                <p>🌍 ${d.country}</p>  
+                <p>🏙️ ${d.city}</p>  
+                <p>💰 Büdcə: ${d.budget}</p>  
+                <p>📅 Tarix: ${d.travelDate || '-'}</p>  
+                <p>🎯 ${d.interests}</p>  
+                <p>📞 WhatsApp: ${d.whatsapp || '-'}</p>  
+                <a href="https://wa.me/${d.whatsapp || ''}" target="_blank" style="display:inline-block; padding:8px 12px; background:green; color:white; text-decoration:none; border-radius:8px; margin-top:5px;">WhatsApp Yaz</a>  
+                <br><br>  
+                <p>✈️ Telegram: ${d.telegram || '-'}</p>  
+                <a href="https://t.me/${d.telegram || ''}" target="_blank" style="display:inline-block; padding:8px 12px; background:#0088cc; color:white; text-decoration:none; border-radius:8px;">Telegram Aç</a>  
+                <p style="color:green; font-weight:bold; margin-top:10px;">🤝 Uyğunluq: ${matchScore}%</p>  
+                <button onclick="addFavorite('${d.name}')">❤️ Favoriyə əlavə et</button>  
+            </div>`;  
+        }  
+    });  
+    list.innerHTML = html || "Heç bir nəticə tapılmadı.";  
+    renderFavorites();  
+};  
+  
+renderFavorites();  
+loadTravelers();  
+</script>  </body>  
+</html>   
