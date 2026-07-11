@@ -1,124 +1,125 @@
-<script type="module">
+<!DOCTYPE html>
+<html lang="az">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Traveler Connect</title>
 
+<style>
+body{ font-family:Arial,sans-serif; background:#f5f5f5; padding:20px; margin:0; }
+.container{ max-width:900px; margin:auto; }
+.card{ background:white; padding:20px; border-radius:15px; margin-bottom:20px; box-shadow:0 2px 10px rgba(0,0,0,.1); }
+input,textarea,select{ width:100%; padding:12px; margin:8px 0; border:1px solid #ddd; border-radius:8px; box-sizing:border-box; }
+button{ width:100%; padding:12px; background:#007bff; color:white; border:none; border-radius:8px; font-size:16px; cursor:pointer; }
+h1,h2{ text-align:center; }
+</style>
+</head>
+
+<body>
+
+<div class="container">
+
+<div class="card">
+<h1>Traveler Connect ✈️</h1>
+<input id="name" placeholder="Adınız">
+<input id="country" placeholder="Ölkə">
+<input id="city" placeholder="Şəhər">
+<input id="budget" placeholder="Büdcə">
+<textarea id="interests" placeholder="Maraqlarınız"></textarea>
+<button onclick="saveTraveler()">Paylaş</button>
+</div>
+
+<div class="card">
+<h2>Səyahətçiləri Axtar</h2>
+<input id="search" placeholder="Ölkə və ya şəhər yazın" onkeyup="loadTravelers()">
+<select id="budgetFilter" onchange="loadTravelers()">
+<option value="">Bütün büdcələr</option>
+<option value="500">500+</option>
+<option value="1000">1000+</option>
+<option value="2000">2000+</option>
+</select>
+</div>
+
+<div class="card">
+<h2>Bütün Səyahətçilər</h2>
+<div id="travelersList">Yüklənir...</div>
+</div>
+
+<script type="module">
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
 import { getFirestore, collection, addDoc, getDocs } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
 
 const firebaseConfig = {
-apiKey: "AIzaSyA5ZXlknI-jq50zGyEsCv56xruEsirjanE",
-authDomain: "traveler-connect-616a1.firebaseapp.com",
-projectId: "traveler-connect-616a1",
-storageBucket: "traveler-connect-616a1.firebasestorage.app",
-messagingSenderId: "601977790428",
-appId: "1:601977790428:web:b69dab80eb7bceab233919",
-measurementId: "G-YNPPEPQQM0"
+  apiKey: "AIzaSyA5ZXlknI-jq50zGyEsCv56xruEsirjanE",
+  authDomain: "traveler-connect-616a1.firebaseapp.com",
+  projectId: "traveler-connect-616a1",
+  storageBucket: "traveler-connect-616a1.firebasestorage.app",
+  messagingSenderId: "601977790428",
+  appId: "1:601977790428:web:b69dab80eb7bceab233919"
 };
 
 const app = initializeApp(firebaseConfig);
 const db = getFirestore(app);
 
 window.saveTraveler = async function(){
+    const name = document.getElementById("name").value.trim();
+    const country = document.getElementById("country").value.trim();
+    const city = document.getElementById("city").value.trim();
+    const budget = document.getElementById("budget").value.trim();
+    const interests = document.getElementById("interests").value.trim();
 
-const name = document.getElementById("name").value.trim();
-const country = document.getElementById("country").value.trim();
-const city = document.getElementById("city").value.trim();
-const budget = document.getElementById("budget").value.trim();
-const interests = document.getElementById("interests").value.trim();
+    if(!name || !country || !city){
+        alert("Bütün xanaları doldurun");
+        return;
+    }
 
-if(!name || !country || !city){
-alert("Ad, ölkə və şəhər yazın");
-return;
-}
-
-try{
-
-await addDoc(collection(db,"travelers"),{
-name,
-country,
-city,
-budget,
-interests,
-createdAt:new Date()
-});
-
-alert("Profil əlavə edildi");
-
-document.getElementById("name").value="";
-document.getElementById("country").value="";
-document.getElementById("city").value="";
-document.getElementById("budget").value="";
-document.getElementById("interests").value="";
-
-loadTravelers();
-
-}catch(error){
-
-console.error(error);
-alert("Xəta baş verdi");
-
-}
+    try {
+        await addDoc(collection(db,"travelers"),{
+            name, country, city, budget, interests, createdAt: new Date()
+        });
+        alert("Profil uğurla əlavə edildi!");
+        document.getElementById("name").value = "";
+        document.getElementById("country").value = "";
+        document.getElementById("city").value = "";
+        document.getElementById("budget").value = "";
+        document.getElementById("interests").value = "";
+        loadTravelers();
+    } catch(error) {
+        console.error(error);
+        alert("Xəta baş verdi");
+    }
 };
 
 window.loadTravelers = async function(){
-
-const list = document.getElementById("travelersList");
-
-if(!list) return;
-
-const searchElement = document.getElementById("search");
-const budgetElement = document.getElementById("budgetFilter");
-
-const searchTerm = searchElement ? searchElement.value.toLowerCase() : "";
-const budgetFilter = budgetElement ? budgetElement.value : "";
-
-list.innerHTML = "Yüklənir...";
-
-const snapshot = await getDocs(collection(db,"travelers"));
-
-let html = "";
-snapshot.forEach((doc)=>{
-
-const d = doc.data();
-
-const matchesSearch =
-(d.city || "").toLowerCase().includes(searchTerm) ||
-(d.country || "").toLowerCase().includes(searchTerm);
-
-const matchesBudget =
-budgetFilter === "" ||
-parseInt(d.budget || 0) >= parseInt(budgetFilter);
-
-if(matchesSearch && matchesBudget){
-
-html += `
-<div style="
-background:white;
-padding:15px;
-margin:10px 0;
-border-radius:12px;
-box-shadow:0 2px 8px rgba(0,0,0,.1);
-">
-
-<h3>${d.name}</h3>
-
-<p>🌍 ${d.country}</p>
-
-<p>🏙️ ${d.city}</p>
-
-<p>💰 Büdcə: ${d.budget}</p>
-
-<p>🎯 ${d.interests}</p>
-
-</div>
-`;
-
-}
-
-});
-
-list.innerHTML = html || "Heç bir nəticə tapılmadı.";
-
+    const list = document.getElementById("travelersList");
+    const search = document.getElementById("search").value.toLowerCase();
+    const budgetFilter = document.getElementById("budgetFilter").value;
+    
+    list.innerHTML = "Yüklənir...";
+    const snapshot = await getDocs(collection(db,"travelers"));
+    let html = "";
+    
+    snapshot.forEach((doc)=>{
+        const d = doc.data();
+        const matchesSearch = d.country.toLowerCase().includes(search) || d.city.toLowerCase().includes(search);
+        const matchesBudget = budgetFilter === "" || parseInt(d.budget || 0) >= parseInt(budgetFilter);
+        
+        if(matchesSearch && matchesBudget){
+            html += `
+            <div style="background:white; padding:15px; margin:10px 0; border-radius:10px; border:1px solid #ddd;">
+                <h3>${d.name}</h3>
+                <p>🌍 ${d.country}</p>
+                <p>🏙️ ${d.city}</p>
+                <p>💰 Büdcə: ${d.budget}</p>
+                <p>🎯 ${d.interests}</p>
+            </div>`;
+        }
+    });
+    list.innerHTML = html || "Heç bir nəticə tapılmadı.";
 };
 
 loadTravelers();
-
 </script>
+
+</body>
+</html>
